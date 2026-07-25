@@ -3,15 +3,103 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#080a12">
+<meta name="theme-color" content="#05070b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Omega: Breach</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main class="app">
-<section id="menu" class="screen on"><div class="hero card stack"><div class="omega">Ω</div><p class="eyebrow">TACTICAL ROGUELITE</p><h1>OMEGA: BREACH</h1><p class="muted">Infiltre le complexe, récupère trois fragments et rejoins l'extraction.</p><button id="continue" class="btn primary">Continuer</button><button id="new" class="btn secondary">Nouvelle partie</button><button id="rules" class="btn ghost">Comment jouer</button><p class="tiny muted">Parties de 5 à 10 minutes · sauvegarde automatique</p></div></section>
-<section id="base" class="screen"><header class="top"><div><p class="eyebrow">OMEGA // BASE</p><h2>Centre d'opérations</h2></div><button id="wipe" class="btn small ghost">Réinitialiser</button></header><div class="card stack"><div class="metrics"><div class="metric"><span>Niveau</span><b id="level">1</b></div><div class="metric"><span>Crédits</span><b id="credits">0</b></div><div class="metric"><span>Renseign.</span><b id="intel">0</b></div></div><div><div class="split tiny"><span>Expérience</span><span id="xplabel"></span></div><div class="bar"><i id="xpbar"></i></div></div><div class="metrics"><div class="metric"><span>PV max</span><b id="maxhp"></b></div><div class="metric"><span>Dégâts</span><b id="damage"></b></div><div class="metric"><span>Armure</span><b id="armor"></b></div></div></div><div class="section"><h2>Prochaine opération</h2><span id="threat" class="badge"></span></div><div class="card stack"><div class="split"><div><h3 id="mname"></h3><p id="mdesc" class="tiny muted"></p></div><span id="micon" style="font-size:30px"></span></div><div class="split tiny"><span>Récompense</span><b id="reward"></b></div><button id="launch" class="btn primary">Lancer l'opération</button></div><div class="section"><h2>Arsenal</h2><span class="tiny muted">Consommables</span></div><div class="shopgrid"><article class="shop"><h3>🩹 Médikit</h3><p class="tiny muted">Rend 45 PV.</p><button id="buymed" class="btn small">Acheter · 90</button></article><article class="shop"><h3>⚡ Charge IEM</h3><p class="tiny muted">Étourdit à 3 cases.</p><button id="buyemp" class="btn small">Acheter · 120</button></article></div><div class="section"><h2>Améliorations</h2><span class="tiny muted">Permanentes</span></div><div id="upgrades" class="stack"></div><p class="foot">La progression reste enregistrée dans ton navigateur.</p></section>
-<section id="mission" class="screen"><header class="top"><div><p class="eyebrow">OMEGA // OPÉRATION</p><h2 id="turn">Tour 1</h2></div><button id="abort" class="btn small danger">Abandonner</button></header><div class="hud"><div class="metric"><span>PV</span><b id="hp"></b><div class="bar"><i id="hpbar"></i></div></div><div class="metric"><span>Munitions</span><b id="ammo"></b></div><div class="metric"><span>Fragments</span><b id="frags"></b></div></div><p id="objective" class="objective"></p><div class="mapbox"><div id="grid" class="grid"></div></div><div class="controls"><div class="actions"><button id="scan" class="btn">📡 Scanner</button><button id="shoot" class="btn">🎯 Tirer</button><button id="use" class="btn">✋ Interagir</button></div><div class="dpad"><span></span><button data-move="up" class="btn">▲</button><span></span><button data-move="left" class="btn">◀</button><button data-move="wait" class="btn">•</button><button data-move="right" class="btn">▶</button><span></span><button data-move="down" class="btn">▼</button><span></span></div><div class="actions"><button id="med" class="btn">🩹 Médikit</button><button id="emp" class="btn">⚡ IEM</button><button id="reload" class="btn">🔄 Recharger</button></div></div><div id="log" class="log" aria-live="polite"></div></section>
-</main><div id="overlay" class="overlay"><div id="modal" class="modal card"></div></div><div id="toast" class="toast"></div>
+<div id="app" class="app">
+  <section id="menu" class="screen on menu-screen">
+    <canvas id="menuFx" class="backdrop" aria-hidden="true"></canvas>
+    <div class="menu-vignette"></div>
+    <div class="hero-panel">
+      <div class="sigil"><span>Ω</span></div>
+      <p class="kicker">BLACKSITE INFILTRATION // 07</p>
+      <h1>OMEGA<br><em>BREACH</em></h1>
+      <p class="lead">Un roguelite tactique mobile dans un complexe qui se réécrit à chaque incursion.</p>
+      <div class="menu-actions">
+        <button id="continue" class="game-btn primary"><span>CONTINUER</span><small>Reprendre l'opération</small></button>
+        <button id="new" class="game-btn"><span>NOUVELLE PARTIE</span><small>Effacer le protocole actuel</small></button>
+        <button id="rules" class="text-btn">Comment jouer</button>
+      </div>
+      <div class="status-line"><i></i><span>Connexion au relais OMEGA</span></div>
+    </div>
+  </section>
+
+  <section id="base" class="screen base-screen">
+    <div class="base-scene">
+      <div class="base-glow"></div>
+      <div class="hangar-grid"></div>
+      <div class="operator-silhouette"></div>
+      <div class="base-copy"><p class="kicker">SAFEHOUSE // NODE 04</p><h2>Centre d'opérations</h2><p>Prépare ton agent avant la prochaine brèche.</p></div>
+    </div>
+    <div class="base-ui">
+      <header class="hud-header">
+        <div class="profile"><div class="avatar">A7</div><div><b>AGENT A-07</b><span id="rankLabel">NIVEAU 1</span></div></div>
+        <button id="wipe" class="icon-btn" aria-label="Réinitialiser">↺</button>
+      </header>
+      <div class="resource-strip">
+        <div><span>CRÉDITS</span><b id="credits">0</b></div>
+        <div><span>RENSEIGNEMENT</span><b id="intel">0</b></div>
+        <div><span>VIES PERDUES</span><b id="deaths">0</b></div>
+      </div>
+      <div class="xp-wrap"><div><span>PROGRESSION</span><strong id="xplabel"></strong></div><div class="progress"><i id="xpbar"></i></div></div>
+
+      <article class="mission-card">
+        <div class="mission-art"><div class="scanlines"></div><span id="micon">◈</span></div>
+        <div class="mission-info"><div class="mission-top"><span id="threat" class="danger-chip"></span><span id="reward"></span></div><h3 id="mname"></h3><p id="mdesc"></p><button id="launch" class="launch-btn"><span>LANCER L'OPÉRATION</span><i>→</i></button></div>
+      </article>
+
+      <div class="section-title"><span>ÉQUIPEMENT</span><i></i></div>
+      <div class="loadout-grid">
+        <button id="buymed" class="equipment-card"><div class="equip-icon med-icon">✚</div><div><b>MÉDIKIT</b><small>Restaure 45 PV</small></div><span>90 C</span></button>
+        <button id="buyemp" class="equipment-card"><div class="equip-icon emp-icon">ϟ</div><div><b>CHARGE IEM</b><small>Neutralise à courte portée</small></div><span>120 C</span></button>
+      </div>
+
+      <div class="section-title"><span>AMÉLIORATIONS</span><i></i></div>
+      <div id="upgrades" class="upgrade-list"></div>
+    </div>
+  </section>
+
+  <section id="mission" class="screen mission-screen">
+    <div class="mission-shell">
+      <canvas id="game" aria-label="Zone tactique"></canvas>
+      <div class="grain"></div>
+      <div id="damageFlash" class="damage-flash"></div>
+      <header class="mission-hud">
+        <div class="hud-brand"><span>Ω</span><div><b id="sectorName">SECTEUR</b><small id="turn">TOUR 1</small></div></div>
+        <button id="abort" class="abort-btn">EXFILTRER</button>
+      </header>
+      <div class="objective-panel"><span>OBJECTIF</span><b id="objective"></b></div>
+      <div class="agent-panel">
+        <div class="agent-portrait"><span>A7</span><i id="hpRing"></i></div>
+        <div class="agent-bars"><div><span>INTÉGRITÉ</span><b id="hp"></b></div><div class="health-track"><i id="hpbar"></i></div></div>
+        <div class="ammo-panel"><span>MUNITIONS</span><b id="ammo"></b></div>
+      </div>
+      <div class="fragment-panel"><span>FRAGMENTS</span><div id="fragmentPips"><i></i><i></i><i></i></div></div>
+      <div class="action-wheel">
+        <button id="scan" class="ability"><span>⌁</span><small>SCAN</small></button>
+        <button id="shoot" class="ability main"><span>⌖</span><small>TIRER</small></button>
+        <button id="use" class="ability"><span>◇</span><small>UTILISER</small></button>
+      </div>
+      <div class="utility-bar">
+        <button id="med" class="utility"><span>✚</span><b>0</b></button>
+        <button id="emp" class="utility"><span>ϟ</span><b>0</b></button>
+        <button id="reload" class="utility"><span>↻</span><b>RECHARGE</b></button>
+      </div>
+      <div class="dpad" aria-label="Déplacement">
+        <span></span><button data-move="up">▲</button><span></span>
+        <button data-move="left">◀</button><button data-move="wait">•</button><button data-move="right">▶</button>
+        <span></span><button data-move="down">▼</button><span></span>
+      </div>
+      <div id="log" class="combat-log"></div>
+    </div>
+  </section>
+</div>
+<div id="overlay" class="overlay"><div id="modal" class="modal"></div></div>
+<div id="toast" class="toast"></div>
 <script src="app.js" defer></script>
-</body></html>
+</body>
+</html>
